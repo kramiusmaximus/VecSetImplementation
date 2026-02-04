@@ -6,6 +6,11 @@ A powerful 3D mesh editing framework using VecSet representation and attention-b
   <img src="./assets/teaser_1214.jpg" alt="VecSetEdit Teaser" width="800"/>
 </div>
 
+
+https://github.com/user-attachments/assets/94cf864f-69ea-4bca-8542-1a2757d1c4ca
+
+
+
 ## 📋 Table of Contents
 
 - [Installation](#installation)
