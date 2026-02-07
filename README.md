@@ -1,6 +1,7 @@
 # VecSetEdit
 
 A powerful 3D mesh editing framework using VecSet representation and attention-based mechanisms for precise, localized and **image guided mesh edit**.
+[(arXiv Paper)](https://www.arxiv.org/abs/2602.04349)
 
 <div align="center">
   <img src="./assets/teaser_1214.jpg" alt="VecSetEdit Teaser" width="800"/>
