@@ -1,0 +1,10 @@
+venv/
+.venv/
+__pycache__/
+runs/
+output/
+tmp/
+pretrained_weights/
+checkpoints/
+.git/
+.DS_Store
