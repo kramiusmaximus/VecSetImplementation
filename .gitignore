@@ -37,7 +37,6 @@ checkpoints/.cache/
 
 # Logs
 *.log
-*.txt
 gen_log.txt
 
 # OS
