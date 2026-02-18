@@ -23,11 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY . /workspace
 
-RUN python -m pip install --upgrade pip \
-    && pip install --no-cache-dir -r /workspace/.runpod/requirements_serverless.txt \
-    && pip install --no-cache-dir setuptools wheel ninja \
-    && pip install --no-cache-dir git+https://github.com/NVlabs/nvdiffrast.git --no-build-isolation \
-    && pip install --no-cache-dir torch-cluster -f https://pytorch-geometric.com/whl/torch-2.6.0+cu124.html \
-    && pip install --no-cache-dir git+https://github.com/SarahWeiii/diso.git --no-build-isolation
+RUN python -m pip install --upgrade pip
+RUN pip install --no-cache-dir -r /workspace/.runpod/requirements_serverless.txt
+RUN pip install --no-cache-dir setuptools wheel ninja
+RUN pip install --no-cache-dir git+https://github.com/NVlabs/nvdiffrast.git --no-build-isolation
+RUN pip install --no-cache-dir torch-cluster -f https://pytorch-geometric.com/whl/torch-2.6.0+cu124.html
+RUN pip install --no-cache-dir git+https://github.com/SarahWeiii/diso.git --no-build-isolation
 
 CMD ["python", "-u", "/workspace/.runpod/handler.py"]
