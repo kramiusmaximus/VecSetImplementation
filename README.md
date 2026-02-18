@@ -203,6 +203,64 @@ python preserving_texture_baking.py \
 3. Applies inpainting and upscaling to preserve texture quality
 4. Outputs the final textured mesh as `mv_repaint_model.glb`
 
+## Web GUI (Local)
+
+This repo includes a Gradio-based web UI to run VecSetEdit with file uploads and a one-click results download.
+
+### Install UI dependency
+
+```bash
+pip install -r requirements_ui.txt
+```
+
+### Launch the GUI
+
+```bash
+python app.py
+```
+
+The UI runs on `http://localhost:7860`. Upload your mesh, edit image, and mask image. The render image is optional.
+
+## RunPod Serverless
+
+This repo includes a RunPod Serverless worker in `.runpod/`. It is designed for Linux + CUDA GPUs.
+
+### Files
+- `.runpod/Dockerfile`: Container build for RunPod serverless
+- `.runpod/handler.py`: RunPod serverless handler
+- `.runpod/hub.json`: Hub metadata/config
+- `.runpod/tests.json`: Hub test payload (dry run)
+
+### Example input payload
+
+```json
+{
+  "mesh_url": "https://example.com/model.glb",
+  "edit_image_url": "https://example.com/2d_edit.png",
+  "mask_image_url": "https://example.com/2d_mask.png",
+  "render_image_url": "https://example.com/2d_render.png",
+  "run_texture_repaint": false,
+  "return_files": false,
+  "return_zip_base64": false
+}
+```
+
+### Optional parameters
+- `azimuth`, `elevation`, `scale`
+- `attentive_2d`, `cut_off_p`, `topk_percent_2d`, `threshold_percent_2d`, `step_pruning`
+- `edit_strength`, `guidance_scale`
+- `run_texture_repaint` (bool), `seed`, `render_method` (`nvdiffrast` or `bpy`)
+- `return_files` (bool) to base64-encode outputs in the response
+- `return_zip_base64` (bool) to return a zipped bundle of outputs (base64)
+- `dry_run` (bool) to validate the handler without running inference
+
+### Output
+The handler returns:
+- `status`, `run_id`
+- `outputs` list of produced files
+- `log` for stdout/stderr
+- Optional `files` and `zip` base64 blobs (if enabled)
+
 ## Demo Videos
 
 <div align="center">
@@ -240,4 +298,3 @@ This project integrates and builds upon the following open-source projects:
 We are grateful to the authors and contributors of these projects for making their work available to the research community.
 
 **Note**: This is a research project. The code is provided as-is for academic and research purposes.
-

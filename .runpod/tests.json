@@ -1,0 +1,10 @@
+{
+  "input": {
+    "dry_run": true
+  },
+  "config": {
+    "gpuTypeId": "NVIDIA A100 80GB PCIe",
+    "allowPublicAccess": true
+  },
+  "timeout": 600
+}
