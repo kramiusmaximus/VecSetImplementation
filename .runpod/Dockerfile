@@ -8,7 +8,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ENV CUDA_HOME=/usr/local/cuda \
     PATH=/usr/local/cuda/bin:${PATH} \
     LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH} \
-    TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0+PTX"
+    TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0+PTX" \
+    C_INCLUDE_PATH=/usr/local/cuda/include \
+    CPLUS_INCLUDE_PATH=/usr/local/cuda/include
 
 WORKDIR /workspace
 
