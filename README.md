@@ -16,6 +16,7 @@ https://github.com/user-attachments/assets/94cf864f-69ea-4bca-8542-1a2757d1c4ca
 
 - [Installation](#installation)
 - [Usage](#usage)
+  - [app.py - Web GUI](#apppy---web-gui)
   - [vecset_edit.py - 3D Mesh Editing](#vecset_editpy---3d-mesh-editing)
   - [preserving_texture_baking.py - Texture Preservation](#preserving_texture_bakingpy---texture-preservation-and-baking)
 - [Demo Videos](#demo-videos)
@@ -84,7 +85,7 @@ pip install git+https://github.com/SarahWeiii/diso.git --no-build-isolation
 
 ```bash
 # Install all core dependencies at once
-pip install -r other_requirements.txt
+pip install -r requirements.txt
 ```
 
 #### Install Optional Dependencies
@@ -106,6 +107,16 @@ pip install gfpgan realesrgan facexlib basicsr
 ⚠️ **Wheel Files**: For `nvdiffrast` and potentially `torch-cluster`, you may need to manually download wheel files if automated downloads fail.
 
 ## Usage
+
+### app.py - Web GUI
+
+Run the Gradio web app after completing the installation steps:
+
+```bash
+python app.py
+```
+
+Then open http://localhost:7860 in your browser.
 
 ### vecset_edit.py - 3D Mesh Editing
 
@@ -240,4 +251,3 @@ This project integrates and builds upon the following open-source projects:
 We are grateful to the authors and contributors of these projects for making their work available to the research community.
 
 **Note**: This is a research project. The code is provided as-is for academic and research purposes.
-
