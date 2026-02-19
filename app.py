@@ -116,44 +116,44 @@ def run_vecset_edit(
         progress(0.02, desc="Preparing run directory")
         run_dir, input_dir, output_dir = _new_run_dir()
 
-    client_host = None
-    if request is not None:
-        client_host = getattr(getattr(request, "client", None), "host", None)
-    LOGGER.info(
-        "request_start run_id=%s client=%s mesh=%s edit=%s mask=%s render=%s az=%s el=%s scale=%s attentive_2d=%s cut_off_p=%s topk=%s threshold=%s step_pruning=%s edit_strength=%s guidance_scale=%s texture_repaint=%s seed=%s render_method=%s",
-        os.path.basename(run_dir),
-        client_host,
-        os.path.basename(mesh_file) if mesh_file else None,
-        os.path.basename(edit_image) if edit_image else None,
-        os.path.basename(mask_image) if mask_image else None,
-        os.path.basename(render_image) if render_image else None,
-        azimuth,
-        elevation,
-        scale,
-        attentive_2d,
-        cut_off_p,
-        topk_percent_2d,
-        threshold_percent_2d,
-        step_pruning,
-        edit_strength,
-        guidance_scale,
-        run_texture_repaint,
-        seed,
-        render_method,
-    )
+        client_host = None
+        if request is not None:
+            client_host = getattr(getattr(request, "client", None), "host", None)
+        LOGGER.info(
+            "request_start run_id=%s client=%s mesh=%s edit=%s mask=%s render=%s az=%s el=%s scale=%s attentive_2d=%s cut_off_p=%s topk=%s threshold=%s step_pruning=%s edit_strength=%s guidance_scale=%s texture_repaint=%s seed=%s render_method=%s",
+            os.path.basename(run_dir),
+            client_host,
+            os.path.basename(mesh_file) if mesh_file else None,
+            os.path.basename(edit_image) if edit_image else None,
+            os.path.basename(mask_image) if mask_image else None,
+            os.path.basename(render_image) if render_image else None,
+            azimuth,
+            elevation,
+            scale,
+            attentive_2d,
+            cut_off_p,
+            topk_percent_2d,
+            threshold_percent_2d,
+            step_pruning,
+            edit_strength,
+            guidance_scale,
+            run_texture_repaint,
+            seed,
+            render_method,
+        )
 
-    mesh_name = os.path.basename(mesh_file)
-    edit_name = os.path.basename(edit_image)
-    mask_name = os.path.basename(mask_image)
+        mesh_name = os.path.basename(mesh_file)
+        edit_name = os.path.basename(edit_image)
+        mask_name = os.path.basename(mask_image)
 
-    _copy_uploaded(mesh_file, input_dir, mesh_name)
-    _copy_uploaded(edit_image, input_dir, edit_name)
-    _copy_uploaded(mask_image, input_dir, mask_name)
+        _copy_uploaded(mesh_file, input_dir, mesh_name)
+        _copy_uploaded(edit_image, input_dir, edit_name)
+        _copy_uploaded(mask_image, input_dir, mask_name)
 
-    render_name = None
-    if render_image:
-        render_name = os.path.basename(render_image)
-        _copy_uploaded(render_image, input_dir, render_name)
+        render_name = None
+        if render_image:
+            render_name = os.path.basename(render_image)
+            _copy_uploaded(render_image, input_dir, render_name)
 
         progress(0.08, desc="Launching VecSetEdit")
         cmd = [
