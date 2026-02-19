@@ -368,7 +368,14 @@ Notes:
 
 def main():
     _ensure_dir(RUNS_DIR)
-    demo.queue(max_size=4).launch(server_name="0.0.0.0", server_port=7860)
+    root_path = os.getenv("GRADIO_ROOT_PATH", "").strip() or None
+    if root_path:
+        LOGGER.info("using_gradio_root_path %s", root_path)
+    demo.queue(max_size=4).launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        root_path=root_path,
+    )
 
 
 if __name__ == "__main__":
