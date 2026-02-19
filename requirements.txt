@@ -25,4 +25,4 @@ accelerate
 huggingface_hub
 pytorch_lightning
 natsort
-gradio>=4.44.0
+gradio==4.44.0
