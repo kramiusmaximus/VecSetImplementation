@@ -22,7 +22,7 @@ safetensors
 diffusers
 transformers
 accelerate
-huggingface_hub
+huggingface_hub<1.0
 pytorch_lightning
 natsort
 gradio==4.44.0
