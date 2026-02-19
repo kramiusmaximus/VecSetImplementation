@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import subprocess
+import logging
 import tempfile
 from datetime import datetime
 import uuid
@@ -10,10 +11,30 @@ import gradio as gr
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 RUNS_DIR = os.path.join(ROOT_DIR, "runs")
+LOG_DIR = os.path.join(ROOT_DIR, "logs")
 
 
 def _ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
+
+
+def _setup_logging() -> logging.Logger:
+    _ensure_dir(LOG_DIR)
+    logger = logging.getLogger("vecset_edit_app")
+    if logger.handlers:
+        return logger
+    logger.setLevel(logging.INFO)
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    file_handler = logging.FileHandler(os.path.join(LOG_DIR, "requests.log"))
+    file_handler.setFormatter(fmt)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(fmt)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    return logger
+
+
+LOGGER = _setup_logging()
 
 
 def _run_cmd(cmd, workdir, env=None):
@@ -75,6 +96,7 @@ def run_vecset_edit(
     seed,
     render_method,
     progress=gr.Progress(track_tqdm=True),
+    request: gr.Request | None = None,
 ):
     if mesh_file is None or edit_image is None or mask_image is None:
         return (
@@ -88,6 +110,32 @@ def run_vecset_edit(
 
     progress(0.02, desc="Preparing run directory")
     run_dir, input_dir, output_dir = _new_run_dir()
+
+    client_host = None
+    if request is not None:
+        client_host = getattr(getattr(request, "client", None), "host", None)
+    LOGGER.info(
+        "request_start run_id=%s client=%s mesh=%s edit=%s mask=%s render=%s az=%s el=%s scale=%s attentive_2d=%s cut_off_p=%s topk=%s threshold=%s step_pruning=%s edit_strength=%s guidance_scale=%s texture_repaint=%s seed=%s render_method=%s",
+        os.path.basename(run_dir),
+        client_host,
+        os.path.basename(mesh_file) if mesh_file else None,
+        os.path.basename(edit_image) if edit_image else None,
+        os.path.basename(mask_image) if mask_image else None,
+        os.path.basename(render_image) if render_image else None,
+        azimuth,
+        elevation,
+        scale,
+        attentive_2d,
+        cut_off_p,
+        topk_percent_2d,
+        threshold_percent_2d,
+        step_pruning,
+        edit_strength,
+        guidance_scale,
+        run_texture_repaint,
+        seed,
+        render_method,
+    )
 
     mesh_name = os.path.basename(mesh_file)
     edit_name = os.path.basename(edit_image)
@@ -143,6 +191,7 @@ def run_vecset_edit(
     progress(0.15, desc="Running VecSetEdit (this can take a while)")
     code, log = _run_cmd(cmd, ROOT_DIR)
     if code != 0:
+        LOGGER.error("request_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code)
         return (
             None,
             None,
@@ -183,11 +232,13 @@ def run_vecset_edit(
             texture_mesh = os.path.join(output_dir, "mv_repaint_model.glb")
         else:
             log = log + f"\nTexture repaint failed (exit code {code2})."
+            LOGGER.error("texture_repaint_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code2)
 
     progress(0.92, desc="Packaging results")
     archive_path = _zip_dir(output_dir, os.path.join(run_dir, "results"))
 
     progress(1.0, desc="Done")
+    LOGGER.info("request_done run_id=%s", os.path.basename(run_dir))
     return (
         edited_mesh if os.path.exists(edited_mesh) else None,
         texture_mesh if texture_mesh and os.path.exists(texture_mesh) else None,
