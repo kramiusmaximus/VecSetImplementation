@@ -27,7 +27,7 @@ def _setup_logging() -> logging.Logger:
     fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
     file_handler = logging.FileHandler(os.path.join(LOG_DIR, "requests.log"))
     file_handler.setFormatter(fmt)
-    stream_handler = logging.StreamHandler()
+    stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(fmt)
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
@@ -49,8 +49,12 @@ def _run_cmd(cmd, workdir, env=None):
     log.append("$ " + " ".join(cmd))
     if result.stdout:
         log.append(result.stdout)
+        for line in result.stdout.splitlines():
+            LOGGER.info("subprocess_stdout %s", line)
     if result.stderr:
         log.append(result.stderr)
+        for line in result.stderr.splitlines():
+            LOGGER.error("subprocess_stderr %s", line)
     return result.returncode, "\n".join(log)
 
 
@@ -98,18 +102,19 @@ def run_vecset_edit(
     progress=gr.Progress(track_tqdm=True),
     request: gr.Request | None = None,
 ):
-    if mesh_file is None or edit_image is None or mask_image is None:
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            "Missing required inputs: mesh, edited image, and mask image are required.",
-        )
+    try:
+        if mesh_file is None or edit_image is None or mask_image is None:
+            return (
+                None,
+                None,
+                None,
+                None,
+                None,
+                "Missing required inputs: mesh, edited image, and mask image are required.",
+            )
 
-    progress(0.02, desc="Preparing run directory")
-    run_dir, input_dir, output_dir = _new_run_dir()
+        progress(0.02, desc="Preparing run directory")
+        run_dir, input_dir, output_dir = _new_run_dir()
 
     client_host = None
     if request is not None:
@@ -150,8 +155,8 @@ def run_vecset_edit(
         render_name = os.path.basename(render_image)
         _copy_uploaded(render_image, input_dir, render_name)
 
-    progress(0.08, desc="Launching VecSetEdit")
-    cmd = [
+        progress(0.08, desc="Launching VecSetEdit")
+        cmd = [
         sys.executable,
         "vecset_edit.py",
         "--input_dir",
@@ -184,33 +189,33 @@ def run_vecset_edit(
         str(edit_strength),
         "--guidance_scale",
         str(guidance_scale),
-    ]
-    if render_name:
-        cmd.extend(["--render_image", render_name])
+        ]
+        if render_name:
+            cmd.extend(["--render_image", render_name])
 
-    progress(0.15, desc="Running VecSetEdit (this can take a while)")
-    code, log = _run_cmd(cmd, ROOT_DIR)
-    if code != 0:
-        LOGGER.error("request_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code)
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            f"VecSetEdit failed (exit code {code}).\n\n{log}",
-        )
+        progress(0.15, desc="Running VecSetEdit (this can take a while)")
+        code, log = _run_cmd(cmd, ROOT_DIR)
+        if code != 0:
+            LOGGER.error("request_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code)
+            return (
+                None,
+                None,
+                None,
+                None,
+                None,
+                f"VecSetEdit failed (exit code {code}).\n\n{log}",
+            )
 
-    progress(0.75, desc="Collecting outputs")
-    edited_mesh = os.path.join(output_dir, "edited_mesh.glb")
-    edited_views = os.path.join(output_dir, "edited_mesh_views.png")
-    selected_views = os.path.join(output_dir, "selected_fixed_tokens_views.png")
-    masked_input = os.path.join(output_dir, "2d_masked_input.png")
+        progress(0.75, desc="Collecting outputs")
+        edited_mesh = os.path.join(output_dir, "edited_mesh.glb")
+        edited_views = os.path.join(output_dir, "edited_mesh_views.png")
+        selected_views = os.path.join(output_dir, "selected_fixed_tokens_views.png")
+        masked_input = os.path.join(output_dir, "2d_masked_input.png")
 
-    texture_mesh = None
-    if run_texture_repaint:
-        progress(0.8, desc="Running texture repaint")
-        cmd2 = [
+        texture_mesh = None
+        if run_texture_repaint:
+            progress(0.8, desc="Running texture repaint")
+            cmd2 = [
             sys.executable,
             "preserving_texture_baking.py",
             "--input_mesh",
@@ -225,29 +230,32 @@ def run_vecset_edit(
             str(seed),
             "--render_method",
             render_method,
-        ]
-        code2, log2 = _run_cmd(cmd2, ROOT_DIR)
-        log = log + "\n\n" + log2
-        if code2 == 0:
-            texture_mesh = os.path.join(output_dir, "mv_repaint_model.glb")
-        else:
-            log = log + f"\nTexture repaint failed (exit code {code2})."
-            LOGGER.error("texture_repaint_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code2)
+            ]
+            code2, log2 = _run_cmd(cmd2, ROOT_DIR)
+            log = log + "\n\n" + log2
+            if code2 == 0:
+                texture_mesh = os.path.join(output_dir, "mv_repaint_model.glb")
+            else:
+                log = log + f"\nTexture repaint failed (exit code {code2})."
+                LOGGER.error("texture_repaint_failed run_id=%s exit_code=%s", os.path.basename(run_dir), code2)
 
-    progress(0.92, desc="Packaging results")
-    archive_path = _zip_dir(output_dir, os.path.join(run_dir, "results"))
+        progress(0.92, desc="Packaging results")
+        archive_path = _zip_dir(output_dir, os.path.join(run_dir, "results"))
 
-    progress(1.0, desc="Done")
-    LOGGER.info("request_done run_id=%s", os.path.basename(run_dir))
-    return (
-        edited_mesh if os.path.exists(edited_mesh) else None,
-        texture_mesh if texture_mesh and os.path.exists(texture_mesh) else None,
-        masked_input if os.path.exists(masked_input) else None,
-        selected_views if os.path.exists(selected_views) else None,
-        edited_views if os.path.exists(edited_views) else None,
-        archive_path if os.path.exists(archive_path) else None,
-        log,
-    )
+        progress(1.0, desc="Done")
+        LOGGER.info("request_done run_id=%s", os.path.basename(run_dir))
+        return (
+            edited_mesh if os.path.exists(edited_mesh) else None,
+            texture_mesh if texture_mesh and os.path.exists(texture_mesh) else None,
+            masked_input if os.path.exists(masked_input) else None,
+            selected_views if os.path.exists(selected_views) else None,
+            edited_views if os.path.exists(edited_views) else None,
+            archive_path if os.path.exists(archive_path) else None,
+            log,
+        )
+    except Exception:
+        LOGGER.exception("request_exception")
+        raise
 
 
 with gr.Blocks(title="VecSetEdit GUI") as demo:
