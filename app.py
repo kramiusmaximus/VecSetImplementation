@@ -306,7 +306,12 @@ Notes:
             value="nvdiffrast",
         )
 
-    run_btn = gr.Button("Run VecSetEdit", variant="primary")
+    with gr.Row():
+        run_btn = gr.Button("Run VecSetEdit", variant="primary")
+        clear_btn = gr.ClearButton(
+            [mesh_file, edit_image, mask_image, render_image],
+            value="Clear inputs",
+        )
 
     with gr.Row():
         edited_mesh_out = gr.Model3D(label="Edited mesh")
